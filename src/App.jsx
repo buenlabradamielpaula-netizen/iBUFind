@@ -147,37 +147,24 @@ async function handleReportSubmit(e) {
     }
 
     // Save public item information
-const { data: newItem, error: insertError } = await supabase
-  .from('items')
-  .insert({
-    report_type: reportType,
-    item_name: itemName,
-    category: category,
-    item_date: itemDate,
-    location: location,
-    description: description,
-    image_path: imagePath,
-    status: 'Open'
-  })
-  .select('id')
-  .single();
+const { error: insertError } = await supabase.rpc('submit_item_report', {
+  p_report_type: reportType,
+  p_item_name: itemName,
+  p_category: category,
+  p_item_date: itemDate,
+  p_location: location,
+  p_description: description,
+  p_image_path: imagePath,
+  p_contact_name: contactName,
+  p_contact_info: contactInfo
+});
 
 if (insertError) {
   throw insertError;
 }
 
 // Save private contact information separately
-const { error: contactError } = await supabase
-  .from('item_contacts')
-  .insert({
-    item_id: newItem.id,
-    contact_name: contactName,
-    contact_info: contactInfo
-  });
 
-if (contactError) {
-  throw contactError;
-}
     alert('Your item report was submitted successfully!');
 
     e.target.reset();
