@@ -156,11 +156,13 @@ a {
 }
 
 .search-section {
-  padding: 55px 10%;
+  padding: 55px 5%;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 20px;
+  width: 100%;
+  min-width: 0;
 }
 
 .search-section h2,
@@ -874,4 +876,51 @@ a {
 .pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+@media (max-width: 600px) {
+  .search-section {
+    width: 100%;
+    min-width: 0;
+    padding-left: 5%;
+    padding-right: 5%;
+    overflow-x: hidden;
+  }
+
+  .category-filter {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    gap: 8px;
+  }
+
+  .category-filter button {
+    min-width: 0;
+    width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding: 10px 4px;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .items-section {
+    padding-left: 5%;
+    padding-right: 5%;
+    width: 100%;
+    overflow-x: hidden;
+  }
+}
+html,
+body,
+#root,
+.app {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
 }
