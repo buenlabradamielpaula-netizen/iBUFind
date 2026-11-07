@@ -158,9 +158,9 @@ a {
 .search-section {
   padding: 55px 10%;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 30px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
 }
 
 .search-section h2,
@@ -182,7 +182,8 @@ a {
   border: 1px solid #dce2ec;
   border-radius: 9px;
   padding: 14px 18px;
-  width: 420px;
+  width: 100%;
+  max-width: 650px;
 }
 
 .search-box input {
@@ -629,4 +630,248 @@ a {
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
+}
+.reported-item-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.item-placeholder {
+  font-size: 55px;
+}
+/* Item Details Modal */
+.item-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.item-modal {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 30px;
+  border-radius: 18px;
+  position: relative;
+  text-align: center;
+}
+
+.item-modal h2 {
+  margin-bottom: 20px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  border: none;
+  background: #f1f1f1;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.modal-item-image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.modal-no-image {
+  height: 180px;
+  background: #edf3ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 65px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.item-modal h3 {
+  margin: 15px 0;
+  font-size: 23px;
+}
+
+.item-modal > p {
+  text-align: left;
+  margin: 12px 0;
+  color: #64748b;
+}
+
+.modal-description {
+  text-align: left;
+  margin-top: 20px;
+  padding: 15px;
+  background: #f5f7fb;
+  border-radius: 10px;
+}
+
+.modal-description p {
+  margin-top: 8px;
+  color: #64748b;
+}
+
+.modal-done {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.filter-buttons button {
+  padding: 8px 20px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.filter-buttons button:hover {
+  background-color: #f0f0f0;
+}
+
+.filter-buttons button.active {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+.category-filter {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.category-filter button {
+  width: 100%;
+  padding: 10px 8px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.category-filter button:hover {
+  background-color: #f0f0f0;
+}
+
+.category-filter button.active {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.category-filter button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+}
+
+.category-filter button:hover {
+  background-color: #f0f0f0;
+}
+
+.category-filter button.active {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+.sort-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.sort-container label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.sort-container select {
+  padding: 9px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: white;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+}
+
+.sort-container select:focus {
+  border-color: #2563eb;
+}
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 30px 0;
+}
+
+.pagination button {
+  padding: 9px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+.pagination button.active {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

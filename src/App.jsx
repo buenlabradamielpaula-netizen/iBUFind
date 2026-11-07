@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import './App.css';
 
@@ -7,6 +7,83 @@ function App() {
   const [search, setSearch] = useState('');
   const [reportType, setReportType] = useState('Lost');
   const [imagePreview, setImagePreview] = useState('');
+  const [items, setItems] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+  if (!selectedItem) return;
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      setSelectedItem(null);
+    }
+  };
+
+  window.addEventListener('keydown', handleKeyDown);
+
+  return () => {
+    window.removeEventListener('keydown', handleKeyDown);
+  };
+}, [selectedItem]);
+
+const fetchItems = useCallback(async () => {
+  const { data, error } = await supabase
+    .from('items')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching items:', error);
+    return [];
+  }
+
+  const formattedItems = data.map((item) => ({
+  id: item.id,
+  name: item.item_name,
+  category: item.category,
+  location: item.location,
+  date: item.item_date
+    ? new Date(item.item_date + 'T00:00:00').toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      })
+    : '',
+  status: item.report_type,
+  icon: item.report_type === 'Lost' ? '🔍' : '📦',
+  description: item.description,
+  contactName: item.contact_name,
+  contactInfo: item.contact_info,
+  imageUrl: item.image_path
+    ? supabase.storage
+        .from('item-images')
+        .getPublicUrl(item.image_path).data.publicUrl
+    : null
+}));
+
+return formattedItems;
+}, []);
+
+useEffect(() => {
+  let ignore = false;
+
+  async function loadItems() {
+    const updatedItems = await fetchItems();
+
+    if (!ignore) {
+      setItems(updatedItems);
+    }
+  }
+
+  loadItems();
+
+  return () => {
+    ignore = true;
+  };
+}, [fetchItems]);
 
 function handleImageChange(e) {
   const file = e.target.files[0];
@@ -103,47 +180,45 @@ async function handleReportSubmit(e) {
   }
 }
 
-  const items = [
-    {
-      name: 'Black Wallet',
-      category: 'Personal Belongings',
-      location: 'School Library',
-      date: 'November 5, 2026',
-      status: 'Found',
-      icon: '👛'
-    },
-    {
-      name: 'Blue Water Bottle',
-      category: 'Accessories',
-      location: 'Room 203',
-      date: 'November 4, 2026',
-      status: 'Found',
-      icon: '🧴'
-    },
-    {
-      name: 'Student ID',
-      category: 'School Supplies',
-      location: 'School Canteen',
-      date: 'November 3, 2026',
-      status: 'Lost',
-      icon: '🪪'
-    },
-    {
-      name: 'Black Umbrella',
-      category: 'Personal Belongings',
-      location: 'School Gym',
-      date: 'November 2, 2026',
-      status: 'Found',
-      icon: '🌂'
-    }
-  ];
 
-  const filteredItems = items.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase()) ||
-    item.category.toLowerCase().includes(search.toLowerCase()) ||
-    item.location.toLowerCase().includes(search.toLowerCase())
-  );
+ const filteredItems = items.filter((item) => {
+  const searchText = search.toLowerCase();
 
+const matchesSearch =
+  (item.name || '').toLowerCase().includes(searchText) ||
+  (item.category || '').toLowerCase().includes(searchText) ||
+  (item.location || '').toLowerCase().includes(searchText);
+
+  const matchesType =
+    typeFilter === 'All' || item.status === typeFilter;
+
+  const matchesCategory =
+    categoryFilter === 'All' || item.category === categoryFilter;
+
+  return matchesSearch && matchesType && matchesCategory;
+});
+const sortedItems = [...filteredItems].sort((a, b) => {
+  if (sortOrder === 'default') return 0;
+
+  const dateA = new Date(a.date).getTime();
+  const dateB = new Date(b.date).getTime();
+
+  if (sortOrder === 'newest') {
+    return dateB - dateA;
+  }
+
+  return dateA - dateB;
+});
+const itemsPerPage = 8;
+
+const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
+
+const startIndex = (currentPage - 1) * itemsPerPage;
+
+const currentItems = sortedItems.slice(
+  startIndex,
+  startIndex + itemsPerPage
+);
   return (
     
     <div className="app">
@@ -221,11 +296,85 @@ async function handleReportSubmit(e) {
             type="text"
             placeholder="Search item name, category, or location..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+  setSearch(e.target.value);
+  setCurrentPage(1);
+}}
           />
-        </div>
-      </section>
+             </div>
 
+      <div className="filter-buttons">
+        <button
+          className={typeFilter === 'All' ? 'active' : ''}
+          onClick={() => {
+  setTypeFilter('All');
+  setCurrentPage(1);
+}}
+        >
+          All
+        </button>
+
+        <button
+          className={typeFilter === 'Lost' ? 'active' : ''}
+         onClick={() => {
+  setTypeFilter('Lost');
+  setCurrentPage(1);
+}}
+        >
+          Lost
+        </button>
+
+        <button
+          className={typeFilter === 'Found' ? 'active' : ''}
+          onClick={() => {
+  setTypeFilter('Found');
+  setCurrentPage(1);
+}}
+        >
+          Found
+        </button>
+      </div>
+      <div className="category-filter">
+  {['Electronics', 'School Supplies', 'Personal Belongings', 'Clothing', 'Accessories', 'Others'].map((category) => (
+    <button
+      key={category}
+      className={categoryFilter === category ? 'active' : ''}
+     onClick={() => {
+  setCategoryFilter(category);
+  setCurrentPage(1);
+}}
+    >
+      {category}
+    </button>
+  ))}
+
+  <button
+    className={categoryFilter === 'All' ? 'active' : ''}
+    onClick={() => {
+  setCategoryFilter('All');
+  setCurrentPage(1);
+}}
+  >
+    All Categories
+  </button>
+</div>
+<div className="sort-container">
+  <label htmlFor="sortOrder">Sort by Date:</label>
+
+  <select
+    id="sortOrder"
+    value={sortOrder}
+    onChange={(e) => {
+  setSortOrder(e.target.value);
+  setCurrentPage(1);
+}}
+  >
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+    <option value="default">Default</option>
+  </select>
+</div>
+    </section>
       {/* Items Section */}
       <section className="items-section" id="items">
         <div className="section-heading">
@@ -241,14 +390,30 @@ async function handleReportSubmit(e) {
 
         <div className="items-grid">
           {filteredItems.length > 0 ? (
-            filteredItems.map((item, index) => (
-              <div className="item-card" key={index}>
+            currentItems.map((item) => (
+              <div
+  className="item-card"
+  key={item.id}
+  onClick={() => setSelectedItem(item)}
+  style={{ cursor: 'pointer' }}
+>
                 <div className="item-image">
-                  <span>{item.icon}</span>
-                  <span className={`status ${item.status.toLowerCase()}`}>
-                    {item.status}
-                  </span>
-                </div>
+  {item.imageUrl ? (
+    <img
+      src={item.imageUrl}
+      alt={item.name}
+      className="reported-item-image"
+    />
+   ) : (
+    <span className="item-placeholder">
+      {item.icon}
+    </span>
+  )}
+
+  <span className={`status ${item.status.toLowerCase()}`}>
+    {item.status}
+  </span>
+ </div>
 
                 <div className="item-details">
                   <h3>{item.name}</h3>
@@ -265,8 +430,36 @@ async function handleReportSubmit(e) {
             <p className="no-results">
               No matching items found. Try another search.
             </p>
-          )}
+                    )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+
+            {Array.from({ length: totalPages }, (_, index) => (
+              <button
+                key={index + 1}
+                className={currentPage === index + 1 ? 'active' : ''}
+                onClick={() => setCurrentPage(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </section>
 
 
@@ -367,9 +560,9 @@ async function handleReportSubmit(e) {
         type="button"
         className="remove-image"
         onClick={() => {
-          setImagePreview('');
-          document.querySelector('input[name="itemImage"]').value = '';
-        }}
+  setTypeFilter('Lost');
+  setCurrentPage(1);
+}}
       >
         Remove Image ✕
       </button>
@@ -461,7 +654,62 @@ async function handleReportSubmit(e) {
         <p>Helping our school community reconnect with their belongings.</p>
         <p>© 2026 School Lost and Found Management System</p>
       </footer>
+{selectedItem && (
+  <div
+  className="item-modal-overlay"
+  onClick={() => setSelectedItem(null)}
+>
+    <div
+  className="item-modal"
+  onClick={(e) => e.stopPropagation()}
+>
 
+      <button
+        className="modal-close"
+        onClick={() => setSelectedItem(null)}
+      >
+        ✕
+      </button>
+
+      <h2>Item Details</h2>
+
+      {selectedItem.imageUrl ? (
+        <img
+          src={selectedItem.imageUrl}
+          alt={selectedItem.name}
+          className="modal-item-image"
+        />
+      ) : (
+        <div className="modal-no-image">
+          {selectedItem.icon}
+        </div>
+      )}
+
+      <span className={`status ${selectedItem.status.toLowerCase()}`}>
+        {selectedItem.status}
+      </span>
+
+      <h3>{selectedItem.name}</h3>
+
+      <p><strong>Category:</strong> {selectedItem.category}</p>
+      <p><strong>Location:</strong> {selectedItem.location}</p>
+      <p><strong>Date:</strong> {selectedItem.date}</p>
+
+      <div className="modal-description">
+        <strong>Description:</strong>
+        <p>{selectedItem.description || 'No description provided.'}</p>
+      </div>
+
+      <button
+        className="modal-done"
+        onClick={() => setSelectedItem(null)}
+      >
+        Close
+      </button>
+
+    </div>
+  </div>
+)}
     </div>
   );
 }
