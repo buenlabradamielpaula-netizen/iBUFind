@@ -33,7 +33,7 @@ function App() {
 const fetchItems = useCallback(async () => {
   const { data, error } = await supabase
     .from('items')
-    .select('*');
+    .select('id, item_name, category, location, item_date, report_type, description, image_path');
 
   if (error) {
     console.error('Error fetching items:', error);
@@ -41,30 +41,28 @@ const fetchItems = useCallback(async () => {
   }
 
   const formattedItems = data.map((item) => ({
-  id: item.id,
-  name: item.item_name,
-  category: item.category,
-  location: item.location,
-  date: item.item_date
-    ? new Date(item.item_date + 'T00:00:00').toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      })
-    : '',
-  status: item.report_type,
-  icon: item.report_type === 'Lost' ? '🔍' : '📦',
-  description: item.description,
-  contactName: item.contact_name,
-  contactInfo: item.contact_info,
-  imageUrl: item.image_path
-    ? supabase.storage
-        .from('item-images')
-        .getPublicUrl(item.image_path).data.publicUrl
-    : null
-}));
+    id: item.id,
+    name: item.item_name,
+    category: item.category,
+    location: item.location,
+    date: item.item_date
+      ? new Date(item.item_date + 'T00:00:00').toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric'
+        })
+      : '',
+    status: item.report_type,
+    icon: item.report_type === 'Lost' ? '🔍' : '📦',
+    description: item.description,
+    imageUrl: item.image_path
+      ? supabase.storage
+          .from('item-images')
+          .getPublicUrl(item.image_path).data.publicUrl
+      : null
+  }));
 
-return formattedItems;
+  return formattedItems;
 }, []);
 
 useEffect(() => {
@@ -148,26 +146,38 @@ async function handleReportSubmit(e) {
       imagePath = uploadData.path;
     }
 
-    // Save item report
-    const { error: insertError } = await supabase
-      .from('items')
-      .insert({
-        report_type: reportType,
-        item_name: itemName,
-        category: category,
-        item_date: itemDate,
-        location: location,
-        description: description,
-        image_path: imagePath,
-        contact_name: contactName,
-        contact_info: contactInfo,
-        status: 'Open'
-      });
+    // Save public item information
+const { data: newItem, error: insertError } = await supabase
+  .from('items')
+  .insert({
+    report_type: reportType,
+    item_name: itemName,
+    category: category,
+    item_date: itemDate,
+    location: location,
+    description: description,
+    image_path: imagePath,
+    status: 'Open'
+  })
+  .select('id')
+  .single();
 
-    if (insertError) {
-      throw insertError;
-    }
+if (insertError) {
+  throw insertError;
+}
 
+// Save private contact information separately
+const { error: contactError } = await supabase
+  .from('item_contacts')
+  .insert({
+    item_id: newItem.id,
+    contact_name: contactName,
+    contact_info: contactInfo
+  });
+
+if (contactError) {
+  throw contactError;
+}
     alert('Your item report was submitted successfully!');
 
     e.target.reset();
