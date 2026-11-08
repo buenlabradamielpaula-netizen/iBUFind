@@ -186,106 +186,111 @@ async function handleSendMessage(e) {
   <div className="messages-container">
     {selectedConversation ? (
       <>
-        <div className="chat-header">
-  <button
-    className="chat-back-button"
-    onClick={() => setSelectedConversation(null)}
-  >
-    ←
-  </button>
+        <h2>
+  {selectedConversation.other_user_name || 'Other user'}
+</h2>
 
-  <div className="chat-header-info">
-    <h2>
-      {selectedConversation.other_user_name || 'Other user'}
-    </h2>
-    <small>iBUFind Messages</small>
-  </div>
-</div>
+        <button onClick={() => setSelectedConversation(null)}>
+          ← Back to Messages
+        </button>
 
-       <div className="chat-messages">
+        <div className="chat-messages">
   {messages.length === 0 ? (
     <p>No messages yet. Start the conversation!</p>
   ) : (
     messages.map((message) => (
+      
       <div
-        key={message.id}
-        className={
-          message.sender_id === session.user.id
-            ? 'message-bubble sent'
-            : 'message-bubble received'
-        }
-      >
+  key={message.id}
+  className={
+    message.sender_id === session.user.id
+      ? 'message-bubble sent'
+      : 'message-bubble received'
+  }
+>
         <small className="message-sender">
-          {message.sender_id === session.user.id
-            ? 'You'
-            : selectedConversation.other_user_name}
-        </small>
+  {message.sender_id === session.user.id
+    ? 'You'
+    : selectedConversation.other_user_name}
+</small>
+<p>{message.message}</p>
 
-        <p>{message.message}</p>
-
-        <small className="message-time">
-          {new Date(message.created_at).toLocaleTimeString([], {
-            hour: 'numeric',
-            minute: '2-digit'
-          })}
-        </small>
+<small className="message-time">
+  {new Date(message.created_at).toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit'
+  })}
+</small>
       </div>
     ))
   )}
-
-  <div ref={messagesEndRef} />
 </div>
 <form onSubmit={handleSendMessage} className="chat-input">
   <input
     type="text"
-    placeholder="Aa"
+    placeholder="Type your message..."
     value={messageText}
     onChange={(e) => setMessageText(e.target.value)}
   />
 
-  <button type="submit" disabled={!messageText.trim()}>
+  <button type="submit">
     Send
   </button>
 </form>
       </>
     ) : (
       <>
-        <h2>My Messages</h2>
+        <h2 className="inbox-title">My Messages</h2>
 
-        <button onClick={onClose}>Back to Homepage</button>
+<button className="inbox-back-button" onClick={onClose}>
+  ← Back to Homepage
+</button>
 
-        {loading ? (
-          <p>Loading conversations...</p>
-        ) : conversations.length === 0 ? (
-          <p>No messages yet.</p>
-        ) : (
-          conversations.map((conversation) => (
-            <div
-              key={conversation.id}
-              className="conversation-item"
-              onClick={() => setSelectedConversation(conversation)}
-              style={{ cursor: 'pointer' }}
-            >
-              <p>{conversation.items?.item_name || 'Item conversation'}</p>
+{loading ? (
+  <p className="inbox-status">Loading conversations...</p>
+) : conversations.length === 0 ? (
+  <p className="inbox-status">No messages yet.</p>
+) : (
+  <div className="conversation-list">
+    {conversations.map((conversation) => (
+      <div
+        key={conversation.id}
+        className="conversation-item"
+        onClick={() => setSelectedConversation(conversation)}
+        style={{ cursor: 'pointer' }}
+      >
+        <div className="conversation-avatar">
+          <span> {(
+            conversation.other_user_name || 'U'
+          ).charAt(0).toUpperCase()} </span>
+        </div>
 
-<p className="last-message-preview">
-  {conversation.messages?.[0]
-    ? `${conversation.messages[0].sender_id === session.user.id
-        ? 'You: '
-        : `${conversation.other_user_name}: `}${conversation.messages[0].message}`
-    : 'No messages yet'}
-</p>
+        <div className="conversation-details">
+          <h3>
+            {conversation.items?.item_name || 'Item conversation'}
+          </h3>
 
-{conversation.messages?.[0] &&
-  conversation.messages[0].sender_id !== session.user.id &&
-  (!conversation.last_read_at ||
-    new Date(conversation.messages[0].created_at) >
-    new Date(conversation.last_read_at)) && (
-      <span className="unread-badge">NEW</span>
+          <p className="last-message-preview">
+            {conversation.messages?.[0]
+              ? `${conversation.messages[0].sender_id === session.user.id
+                  ? 'You: '
+                  : `${conversation.other_user_name}: `}${conversation.messages[0].message}`
+              : 'No messages yet'}
+          </p>
+        </div>
+
+        {conversation.messages?.[0] &&
+          conversation.messages[0].sender_id !== session.user.id &&
+          (!conversation.last_read_at ||
+            new Date(conversation.messages[0].created_at) >
+            new Date(conversation.last_read_at)) && (
+              <span className="unread-badge">NEW</span>
+          )}
+      </div>
+    ))}
+  </div>
 )}
-            </div>
-          ))
-        )}
+        
       </>
     )}
   </div>

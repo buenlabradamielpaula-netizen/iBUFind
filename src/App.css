@@ -1155,3 +1155,106 @@ body,
 .message-bubble p {
   text-align: left;
 }
+/* Messenger-style inbox */
+
+.messages-container:has(.inbox-title) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 750px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 30px 20px;
+  background: #ffffff;
+}
+
+.inbox-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #243047;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.inbox-back-button {
+  align-self: flex-start;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 20px;
+  background: #f0f2f5;
+  color: #1877f2;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: white;
+  transition: background 0.2s ease;
+}
+
+.conversation-item:hover {
+  background: #f5f7fa;
+}
+
+.conversation-avatar {
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  border-radius: 50%;
+  background: #e4e6eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1877f2;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.conversation-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversation-details h3 {
+  font-size: 16px;
+  color: #243047;
+  margin-bottom: 5px;
+}
+
+.last-message-preview {
+  font-size: 14px;
+  color: #65676b;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.unread-badge {
+  background: #1877f2;
+  color: white;
+  padding: 5px 9px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.inbox-status {
+  color: #65676b;
+  padding: 20px 0;
+}
