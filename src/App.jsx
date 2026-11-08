@@ -1,6 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import Auth from './Auth';
+import Messages from './Messages';
 import './App.css';
 
 function App() {
@@ -13,6 +15,26 @@ function App() {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [session, setSession] = useState(null);
+  const [showAuth, setShowAuth] = useState(false);
+
+  const [showMessages, setShowMessages] = useState(false);
+
+useEffect(() => {
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    setSession(session);
+  });
+
+  const {
+    data: { subscription }
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setSession(session);
+  });
+
+  return () => subscription.unsubscribe();
+  
+}, []);
 
   useEffect(() => {
   if (!selectedItem) return;
@@ -33,15 +55,17 @@ function App() {
 const fetchItems = useCallback(async () => {
   const { data, error } = await supabase
     .from('items')
-    .select('id, item_name, category, location, item_date, report_type, description, image_path');
+    .select('id, item_name, category, location, item_date, report_type, description, image_path, reporter_id');
 
   if (error) {
     console.error('Error fetching items:', error);
     return [];
   }
 
+  console.log('Fetched items:', data);
   const formattedItems = data.map((item) => ({
     id: item.id,
+    reporterId: item.reporter_id,
     name: item.item_name,
     category: item.category,
     location: item.location,
@@ -108,9 +132,49 @@ function handleImageChange(e) {
   setImagePreview(URL.createObjectURL(file));
 }
 
+async function handleContactReporter(item) {
+  if (!session) {
+    setSelectedItem(null);
+    setShowAuth(true);
+    return;
+  }
+
+  if (session.user.id === item.reporterId) {
+    alert("You cannot message yourself.");
+    return;
+  }
+
+  const { error } = await supabase
+    .from('conversations')
+    .insert({
+      item_id: item.id,
+      reporter_id: item.reporterId,
+      contact_id: session.user.id
+    })
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === '23505') {
+      alert('You already have a conversation about this item.');
+    } else {
+      console.error('Conversation error:', error);
+      alert('Unable to start a conversation.');
+    }
+    return;
+  }
+
+  setSelectedItem(null);
+  setShowMessages(true);
+}
 
 async function handleReportSubmit(e) {
   e.preventDefault();
+
+  if (!session) {
+  setShowAuth(true);
+  return;
+}
 
   const formData = new FormData(e.target);
 
@@ -165,9 +229,12 @@ if (insertError) {
 
 // Save private contact information separately
 
-    alert('Your item report was submitted successfully!');
+    const updatedItems = await fetchItems();
+setItems(updatedItems);
 
-    e.target.reset();
+alert('Your item report was submitted successfully!');
+
+e.target.reset();
     setImagePreview('');
     setReportType('Lost');
 
@@ -215,10 +282,23 @@ const startIndex = (currentPage - 1) * itemsPerPage;
 const currentItems = sortedItems.slice(
   startIndex,
   startIndex + itemsPerPage
-);
+); 
+
+ if (!session && showAuth) {
+  return <Auth onClose={() => setShowAuth(false)} />;
+}
+
+if (session && showMessages) {
   return (
-    
-    <div className="app">
+    <Messages
+      session={session}
+      onClose={() => setShowMessages(false)}
+    />
+  );
+}
+
+return (
+  <div className="app">
 
       {/* Navigation Bar */}
       <header className="navbar">
@@ -233,9 +313,40 @@ const currentItems = sortedItems.slice(
           <a href="#how-it-works">How It Works</a>
         </nav>
 
-        <a href="#report" className="nav-button">
-          Report an Item
-        </a>
+        <div className="nav-actions">
+          {!session && (
+  <button
+    className="nav-button"
+    onClick={() => setShowAuth(true)}
+  >
+    Log In / Sign Up
+  </button>
+)}
+  {session && (
+  <>
+    <button
+      className="nav-button"
+      onClick={() => setShowMessages(true)}
+    >
+      Messages
+    </button>
+
+    <button
+      className="nav-button"
+      onClick={async () => {
+        await supabase.auth.signOut();
+        setShowMessages(false);
+      }}
+    >
+      Logout
+    </button>
+  </>
+)}
+
+  <a href="#report" className="nav-button">
+    Report an Item
+  </a>
+</div>
       </header>
 
       {/* Hero Section */}
@@ -696,6 +807,13 @@ const currentItems = sortedItems.slice(
         <strong>Description:</strong>
         <p>{selectedItem.description || 'No description provided.'}</p>
       </div>
+
+      <button
+  className="modal-done"
+  onClick={() => handleContactReporter(selectedItem)}
+>
+  💬 Message Reporter
+</button>
 
       <button
         className="modal-done"
