@@ -349,6 +349,15 @@ return (
 </div>
       </header>
 
+      {/* Chrome Light Mode Notice */}
+<div className="chrome-notice">
+  <span className="notice-icon">☀️</span>
+  <p>
+    <strong>Display Notice:</strong> Keep Chrome on Light mode when using
+    iBUFind so the colors remain consistent.
+  </p>
+</div>
+
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">

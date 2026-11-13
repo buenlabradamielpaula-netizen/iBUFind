@@ -1258,3 +1258,39 @@ body,
   color: #65676b;
   padding: 20px 0;
 }
+/* Chrome Light Mode Notice */
+.chrome-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  background: #eff6ff;
+  border-bottom: 1px solid #dbeafe;
+  color: #243047;
+  text-align: center;
+  font-size: 13px;
+}
+
+.chrome-notice p {
+  margin: 0;
+  line-height: 1.5;
+  color: #243047;
+}
+
+.chrome-notice strong {
+  color: #3978df;
+}
+
+.notice-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .chrome-notice {
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+}
