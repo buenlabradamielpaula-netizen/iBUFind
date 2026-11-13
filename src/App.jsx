@@ -362,7 +362,7 @@ return (
       <section className="hero">
         <div className="hero-content">
           <span className="welcome-label">
-            SCHOOL LOST & FOUND SYSTEM
+            BICOL UNIVERSITY LOST & FOUND SYSTEM
           </span>
 
           <h1>
@@ -769,7 +769,7 @@ return (
       <footer className="footer">
       <h3>iBUFind</h3>
         <p>Helping our school community reconnect with their belongings.</p>
-        <p>© 2026 School Lost and Found Management System</p>
+        <p>© 2026 Bicol University Lost and Found Management System</p>
       </footer>
 {selectedItem && (
   <div
